@@ -1,4 +1,4 @@
-import { Component, h, Prop } from '@stencil/core';
+import { Component, h, Prop, Element } from '@stencil/core';
 
 @Component({
   tag: 'tp-input-zone',
@@ -7,6 +7,7 @@ import { Component, h, Prop } from '@stencil/core';
 })
 export class TpInputZone {
   @Prop() round: number;
+  @Element() el: HTMLElement;
   textEl: HTMLTextAreaElement;
   canvasEl: HTMLTpCanvasElement;
 
@@ -53,15 +54,15 @@ export class TpInputZone {
       <div class="flex flex-col items-center w-full">
         {this.isTextRound ? (
           <textarea
-            class="shadow-md shadow-gray-400 border border-slate-500 rounded-lg
+            class="shadow-md shadow-gray-400 border border-slate-500 rounded-lg selectable
                   text-black text-3xl text-center font-medium p-4 w-full bg-white aspect-[5/3]"
             ref={el => (this.textEl = el)}
             placeholder={this.placeholderText}
           ></textarea>
         ) : (
           <div class="w-full">
-            <tp-canvas ref={el => (this.canvasEl = el)}></tp-canvas>
-            <tp-canvas-controls></tp-canvas-controls>
+            <tp-canvas ref={el => (this.canvasEl = el)} hostEl={this.el}></tp-canvas>
+            <tp-canvas-controls hostEl={this.el}></tp-canvas-controls>
           </div>
         )}
         <button
