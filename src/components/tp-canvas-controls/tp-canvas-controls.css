@@ -1,47 +1,112 @@
 :host {
   display: block;
+  margin-top: -0.5rem;
+  width: var(--full-width, 10rem);
+  --block-size: 4rem;
+  --icon-size: 2.5rem;
+  --spacing-size: var(--tp-controls-gap, 1rem);
+  --half-spacing: 0.5rem;
+  --squiggle-size: 3rem;
+  --double-size: calc(8rem + var(--spacing-size));
+}
+
+section {
+  display: flex;
+  gap: var(--spacing-size);
+}
+
+#button-container {
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: var(--half-spacing);
+  padding: var(--spacing-size);
+  container-type: inline-size;
+  align-content: var(--horizontal, initial);
+  flex-direction: var(--flip-pos, row);
+  height: var(--flip-height, initial);
+}
+
+section section {
+  margin: 0;
+  padding: 0;
+}
+
+#line-widths {
+  flex-wrap: wrap;
+  justify-content: center;
+  width: var(--double-size);
+  min-width: var(--double-size);
 }
 
 button {
   background-color: var(--color-button);
+  color: var(--color-button-text);
   display: flex;
   justify-content: center;
   align-items: center;
+  border-radius: var(--half-spacing);
+  width: var(--block-size);
+  height: var(--block-size);
+  border: none;
+  cursor: pointer;
 }
 
-button.black {
-  color: black;
-}
-
-button > svg {
-  width: 2rem;
-  height: 2rem;
-}
-
-button > svg.line-xlarge {
-  width: 2.5rem;
-  height: 2.5rem;
-}
-
-button > svg.line-large {
-  width: 1.85rem;
-}
-
-button > svg.line-medium {
-  width: 1.3rem;
-  height: 1.3rem;
-}
-
-button > svg.line-small {
-  width: 0.75rem;
-  height: 0.75rem;
+#submit-button {
+  min-width: var(--double-size);
+  font-size: large;
+  font-weight: 600;
 }
 
 button:hover,
-button[value='active'] {
+button[data-active] {
   background-color: var(--color-button-hover);
 }
 
 button:disabled {
   background-color: var(--color-button-disabled);
+}
+
+button svg {
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+tp-icon-fill-squiggle {
+  --stroke-color: var(--color-button-text);
+  width: var(--squiggle-size);
+  height: var(--squiggle-size);
+}
+
+#clear {
+  background-color: var(--color-important);
+}
+
+#invert {
+  color: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 50%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 1) 100%);
+  background: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 50%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 1) 100%);
+}
+
+#undo svg {
+  rotate: -50deg;
+}
+
+#redo svg {
+  rotate: 50deg;
+}
+
+#black-clear {
+  color: black;
+}
+
+@media screen and (max-height: 450px) {
+  :host {
+    margin-top: -0.3rem;
+    width: 7.25rem;
+    --block-size: 2.75rem;
+    --icon-size: 1.75rem;
+    --spacing-size: 0.6rem;
+    --half-spacing: 0.3rem;
+    --squiggle-size: 2.25rem;
+    --double-size: 6.6rem;
+  }
 }

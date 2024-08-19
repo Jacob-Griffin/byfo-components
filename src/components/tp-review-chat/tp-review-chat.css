@@ -1,0 +1,152 @@
+:host {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background-color: var(--chat-background, none);
+  border-radius: 0.5rem;
+  padding: 2rem 1rem 3rem 2rem;
+}
+
+article {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: 100%;
+  height: fit-content;
+  gap: 1.75rem;
+  color: var(--chat-text, inherit);
+}
+
+.content-bubble {
+  background-color: var(--chat-bubble);
+  padding: 1rem 1rem 0;
+  border-radius: 1rem;
+  width: fit-content;
+  max-width: calc(100% - 4rem);
+}
+
+.bubble-img {
+  display: flex;
+  flex-direction: column;
+  align-self: flex-end;
+  align-items: right;
+  padding-bottom: 1rem;
+}
+
+.bubble-text > p {
+  font-size: x-large;
+  font-weight: 500;
+  margin-top: 0;
+  margin-bottom: -0.25rem;
+  overflow-wrap: break-word;
+}
+
+.content-bubble > .from {
+  position: relative;
+  bottom: -0.75rem;
+  background-color: var(--chat-from-backdrop);
+  color: var(--chat-from-text, inherit);
+  border-radius: 1em;
+  padding: 0.5em;
+  margin-block: -1em;
+  width: fit-content;
+}
+
+.bubble-text > .from {
+  left: -0.25rem;
+}
+
+.bubble-img > .from {
+  align-self: flex-end;
+  bottom: -1.4rem;
+}
+
+.content-bubble > img {
+  width: 100%;
+  max-width: 600px;
+  max-height: calc(100vh-16rem);
+  aspect-ratio: 1.6;
+}
+
+.lightbox {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background-color: #0008;
+  z-index: 2;
+}
+
+.lightbox img {
+  width: 90vw;
+  aspect-ratio: 1.6;
+  max-width: 1100px;
+}
+
+img {
+  border-radius: 1rem;
+}
+
+.chatNavigator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  margin: 1rem;
+  flex: none;
+}
+
+button {
+  width: 100%;
+  max-width: 24rem;
+  height: 4rem;
+  line-height: 2rem;
+  font-size: 1.5rem;
+  background-color: var(--color-button);
+  color: white;
+  border: none;
+  border-radius: 1rem;
+}
+
+button:hover,
+.selected {
+  background-color: var(--color-button-hover);
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: var(--color-button-disabled);
+}
+
+button.small {
+  white-space: nowrap;
+  width: fit-content;
+  height: 2.5rem;
+  line-height: 1.5rem;
+  padding: 0 1rem;
+  font-size: 1rem;
+  box-sizing: content-box;
+}
+
+.end-text {
+  text-align: center;
+}
+
+.end-text a {
+  color: var(--color-link);
+  cursor: pointer;
+}
+
+.end-text a:hover {
+  color: var(--color-link-hover);
+}
+
+.end-text p {
+  color: var(--color-text);
+}

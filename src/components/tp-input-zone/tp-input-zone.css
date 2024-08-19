@@ -6,12 +6,29 @@
   user-select: none;
 }
 
-.selectable {
-  user-select: text;
+section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
-button {
+section > * {
+  width: 100%;
+}
+
+section > button {
   background-color: var(--color-button);
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+  min-width: 8rem;
+  max-width: fit-content;
+  padding-inline: 1rem;
+  height: 4rem;
+  color: var(--color-button-text);
+  font-size: large;
+  font-weight: 500;
+  border: none;
 }
 
 button:hover {
@@ -20,4 +37,72 @@ button:hover {
 
 button:disabled {
   background-color: var(--color-button-disabled);
+}
+
+#text-input-wrapper {
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  user-select: text;
+  color: var(--color-input-text, black);
+  font-size: x-large;
+  font-weight: 500;
+  padding: 1rem;
+  background-color: var(--color-input-background, white);
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  position: relative;
+}
+
+#text-input {
+  outline: none;
+  width: 100%;
+  cursor: text;
+  display: block;
+}
+
+#text-input:empty::before {
+  content: attr(data-placeholder);
+  color: #888;
+}
+
+#character-limit-count {
+  position: absolute;
+  right: 0.25rem;
+  bottom: 0.125rem;
+  font-size: medium;
+  color: #999c;
+}
+
+#character-limit-count.danger {
+  color: #d33c;
+}
+
+tp-canvas {
+  touch-action: none;
+  flex-basis: 100%;
+  max-width: var(--tp-canvas-width-override, 75vw);
+  max-height: 95vh;
+  aspect-ratio: 5/3;
+}
+
+#canvas-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+  flex-direction: var(--flip-pos, row);
+}
+
+#control-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@media screen and (max-height: 700px) {
+  tp-canvas {
+    max-height: 90vh;
+    flex-shrink: 1;
+    flex-grow: 1;
+  }
 }

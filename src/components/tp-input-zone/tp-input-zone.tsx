@@ -1,4 +1,4 @@
-import { Component, h, Prop, Element, State } from '@stencil/core';
+import { Component, h, Prop, Element, State, Listen } from '@stencil/core';
 
 @Component({
   tag: 'tp-input-zone',
@@ -7,81 +7,128 @@ import { Component, h, Prop, Element, State } from '@stencil/core';
 })
 export class TpInputZone {
   @Prop() round: number;
-  @Prop() buttonColor: string;
-  @Prop() selectedColor: string;
+  @Prop() characterLimit: number;
+  @Prop() sendingTo: string;
+  @Prop() isSending: boolean;
   @Element() el: HTMLElement;
-  @State() canSend: boolean = !this.isTextRound;
-  textEl: HTMLTextAreaElement;
-  canvasEl: HTMLTpCanvasElement;
+  @State() text: string = '';
+
+  saveInterval;
+  loadedBackup;
 
   get isTextRound() {
     return this.round % 2 === 0;
   }
 
   get placeholderText() {
-    if (this.round === 0) {
-      return 'Type in a word, phrase, or sentence to be passed along';
+    if (this.round > 0) {
+      return 'Describe the image you were sent';
     } else {
-      return 'Describe the image your were sent';
+      return 'Type in a word, phrase, or sentence to be passed along';
     }
   }
 
-  connectedCallback() {
-    document.addEventListener('tp-timer-finished', this.sendRound);
-    document.addEventListener('keyup', this.verifyCanSend);
+  get canSend() {
+    return !(this.isTextRound && (!this.text || this.text.length > this.characterLimit) && !this.isSending);
+  }
+
+  getElement = id => this.el.shadowRoot.getElementById(id);
+
+  @Listen('tp-timer-finished', { target: 'document' })
+  timerFinished(e) {
+    this.sendRound(e, true);
+  }
+
+  @Listen('tp-canvas-line')
+  backupCanvas(e: CustomEvent<string>) {
+    localStorage.setItem('currentRoundData', e.detail);
+  }
+
+  componentDidLoad() {
+    this.loadedBackup = localStorage.getItem('currentRoundData');
+    this.saveInterval = setInterval(() => {
+      if (this.isTextRound) {
+        localStorage.setItem('currentRoundData', this.text);
+      }
+    }, 4000);
+  }
+
+  componentDidUpdate() {
+    if (!this.loadedBackup) return;
+    if (this.isTextRound) {
+      this.text = this.loadedBackup;
+      delete this.loadedBackup;
+    } else {
+      const canvas = this.getElement('canvas') as HTMLTpCanvasElement;
+      if (canvas) {
+        canvas.restoreBackup(this.loadedBackup);
+        delete this.loadedBackup;
+      }
+    }
   }
 
   disconnectedCallback() {
-    document.removeEventListener('tp-timer-finished', this.sendRound);
-    document.removeEventListener('keyup', this.verifyCanSend);
+    if (this.saveInterval) {
+      clearInterval(this.saveInterval);
+    }
   }
 
-  verifyCanSend = () => {
-    this.canSend = !(this.isTextRound && this.textEl && this.textEl.value.length == 0);
+  handleInput = (e: InputEvent) => {
+    const span = e.target as HTMLSpanElement;
+    const content = span.textContent;
+    this.text = content
   };
 
-  sendRound = async () => {
-    let value;
-    if (this.isTextRound) {
-      const textarea = this.textEl;
-      value = textarea.value;
+  sendRound = async (_,forced = false) => {
+    let content: string | Blob = this.text;
+    
+    if (!this.isTextRound) {
+      const canvas = this.getElement('canvas') as HTMLTpCanvasElement;
+      content = await canvas?.exportDrawing();
     } else {
-      const canvas = this.canvasEl;
-      value = await canvas.exportDrawing();
+      if(this.text.length > this.characterLimit){
+        content = this.text.slice(0,this.characterLimit);
+      }
     }
 
-    const submitEvent = new CustomEvent<string>('tp-submitted', {
-      detail: value,
+    const submitEvent = new CustomEvent<{content: string | Blob, forced:boolean}>('tp-submitted', {
+      detail: {
+        content,
+        forced
+      }
     });
+    localStorage.removeItem('currentRoundData');
 
     document.dispatchEvent(submitEvent);
   };
 
   render() {
     return (
-      <div class="flex flex-col items-center w-full">
+      <section>
         {this.isTextRound ? (
-          <textarea
-            class="border border-slate-500 rounded-lg selectable
-                  text-black text-3xl text-center font-medium p-4 w-full bg-white aspect-[5/3]"
-            ref={el => (this.textEl = el)}
-            placeholder={this.placeholderText}
-          ></textarea>
+          <div id="text-input-wrapper">
+            <span contentEditable id="text-input" data-placeholder={this.placeholderText} onInput={this.handleInput}></span>
+            <div id="character-limit-count" class={this.text.length > this.characterLimit ? 'danger' : ''}>
+              {this.text.length}/{this.characterLimit}
+            </div>
+          </div>
         ) : (
-          <div class="w-full">
-            <tp-canvas ref={el => (this.canvasEl = el)} hostEl={this.el}></tp-canvas>
-            <tp-canvas-controls hostEl={this.el}></tp-canvas-controls>
+          <div id="canvas-wrapper">
+            <tp-canvas id="canvas" hostEl={this.el}></tp-canvas>
+            <div id="control-wrapper">
+              <slot name="timer" />
+              <tp-canvas-controls submithandler={this.sendRound} hostEl={this.el} isSending={this.isSending}></tp-canvas-controls>
+            </div>
           </div>
         )}
-        <button
-          class="mt-4 rounded-md w-32 h-16 text-white text-lg font-medium 
-                      border-none"
-          onClick={this.sendRound}
-          disabled={!this.canSend}
-        >
-          Send
-        </button>
-      </div>
+        {this.isTextRound ? (
+          <button onClick={this.sendRound} disabled={!this.canSend}>
+            { !this.isSending ? 
+              <span class="button-text">Send to <strong>{this.sendingTo}</strong></span> :
+              <span class="button-text">Sending...</span> }
+          </button>
+        ) : null}
+      </section>
     );
   }
 }

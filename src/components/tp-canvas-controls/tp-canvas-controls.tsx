@@ -1,24 +1,5 @@
 import { Component, h, Element, Prop, State } from '@stencil/core';
-
-import { library, dom } from '@fortawesome/fontawesome-svg-core';
-import { faPencil, faRotateRight, faEraser, faFill, faCircle } from '@fortawesome/free-solid-svg-icons';
-
-// We are only using the user-astronaut icon
-library.add(faPencil);
-library.add(faEraser);
-library.add(faRotateRight);
-library.add(faFill);
-library.add(faCircle);
-
-const icons = {
-  pencil: <i class="fa-solid fa-pencil"></i>,
-  eraser: <i class="fa-solid fa-eraser"></i>,
-  undo: <i class="fa-solid fa-rotate-right" data-fa-transform="flip-h"></i>,
-  redo: <i class="fa-solid fa-rotate-right"></i>,
-  fillWhite: <i class="fa-solid fa-fill"></i>,
-  fillBlack: <i class="fa-solid fa-fill"></i>,
-  lines: width => <i class={`fa-solid fa-circle line-${width}`}></i>,
-};
+import icons from './icons';
 
 @Component({
   tag: 'tp-canvas-controls',
@@ -26,39 +7,39 @@ const icons = {
   shadow: true,
 })
 export class TpCanvasControls {
-  undoButton;
-  redoButton;
-  whiteButton;
-  blackButton;
-  drawButton;
-  eraseButton;
-  lineButtons = {};
   lineWidths = ['small', 'medium', 'large', 'xlarge'];
-  buttonClasses = 'rounded-md w-16 h-16 text-white border-none';
 
   @Prop() hostEl: HTMLElement;
+  @Prop() submithandler: (e: Event) => void;
+  @Prop() isSending: boolean;
   @Element() el: HTMLElement;
-  @State() buttonContainer: HTMLElement;
+  @State() drawing: boolean = true;
+  @State() activeWidth: string = this.lineWidths[0];
 
-  componentDidRender() {
-    this.undoButton.addEventListener('click', this.sendUndo);
-    this.redoButton.addEventListener('click', this.sendRedo);
-    this.whiteButton.addEventListener('click', () => {
-      this.sendClear('#FFF');
-    });
-    this.blackButton.addEventListener('click', () => {
-      this.sendClear('#000');
-    });
-    this.drawButton.addEventListener('click', this.sendDraw);
-    this.eraseButton.addEventListener('click', this.sendErase);
-    Object.keys(this.lineButtons).forEach(width => {
-      this.lineButtons[width].addEventListener('click', () => {
+  getElement = id => this.el.shadowRoot.getElementById(id);
+
+  componentDidLoad() {
+    this.getElement('draw').addEventListener('click', this.sendDraw);
+    this.getElement('erase').addEventListener('click', this.sendErase);
+
+    this.getElement('undo').addEventListener('click', this.sendUndo);
+    this.getElement('redo').addEventListener('click', this.sendRedo);
+
+    this.lineWidths.forEach(width => {
+      this.getElement(`line-${width}`).addEventListener('click', () => {
         this.sendSize(width);
       });
     });
-    dom.i2svg({ node: this.buttonContainer });
+
+    this.getElement('clear').addEventListener('click', () => {
+      this.sendClear('#FFF');
+    });
+    this.getElement('invert').addEventListener('click', () => {
+      this.sendInvert();
+    });
   }
 
+  //#region control events
   sendUndo = () => {
     this.hostEl.dispatchEvent(new CustomEvent('undo-input'));
   };
@@ -73,77 +54,64 @@ export class TpCanvasControls {
 
   sendDraw = () => {
     this.hostEl.dispatchEvent(new CustomEvent('pen-input'));
-    this.drawButton.setAttribute('value', 'active');
-    this.eraseButton.setAttribute('value', 'inactive');
+    this.drawing = true;
   };
 
   sendErase = () => {
     this.hostEl.dispatchEvent(new CustomEvent('eraser-input'));
-    this.drawButton.setAttribute('value', 'inactive');
-    this.eraseButton.setAttribute('value', 'active');
+    this.drawing = false;
   };
 
   sendSize = newSize => {
     this.hostEl.dispatchEvent(new CustomEvent('size-input', { detail: { newSize } }));
-    Object.keys(this.lineButtons).forEach(width => {
-      if (width == newSize) {
-        this.lineButtons[width].setAttribute('value', 'active');
-      } else {
-        this.lineButtons[width].setAttribute('value', 'inactive');
-      }
-    });
+    this.activeWidth = newSize;
   };
+
+  sendInvert = () => {
+    this.hostEl.dispatchEvent(new CustomEvent('invert-input'));
+  }
+
+  //#endregion
 
   render() {
     return (
-      <section class="flex flex-wrap justify-center gap-4 m-2 p-4 rounded-sm" ref={el => (this.buttonContainer = el)}>
-        <button class={this.buttonClasses} ref={el => (this.undoButton = el)}>
-          {icons.undo}
-        </button>
-        <button class={this.buttonClasses} ref={el => (this.redoButton = el)}>
-          {icons.redo}
-        </button>
-        <button class={this.buttonClasses} ref={el => (this.whiteButton = el)}>
-          {icons.fillWhite}
-        </button>
-        <button class={`${this.buttonClasses} black`} ref={el => (this.blackButton = el)}>
-          {icons.fillBlack}
-        </button>
-        <button class={this.buttonClasses} ref={el => (this.drawButton = el)} value="active">
-          {icons.pencil}
-        </button>
-        <button class={this.buttonClasses} ref={el => (this.eraseButton = el)} value="inactive">
-          {icons.eraser}
-        </button>
-        <section class="flex gap-4 m-0 p-0">
+      <section id="button-container">
+        {/* Draw/Erase */}
+        <section>
+          <button id="draw" data-active={this.drawing}>
+            {icons.pencil}
+          </button>
+          <button id="erase" data-active={!this.drawing}>
+            {icons.eraser}
+          </button>
+        </section>
+
+        {/* Undo/Redo */}
+        <section>
+          <button id="undo">{icons.undo}</button>
+          <button id="redo">{icons.redo}</button>
+        </section>
+
+        {/* Line widths */}
+        <section id="line-widths">
           {this.lineWidths.map(width => {
-            if (width == 'small') {
-              return (
-                <button
-                  class={this.buttonClasses}
-                  ref={el => {
-                    this.lineButtons[width] = el;
-                  }}
-                  value="active"
-                >
-                  {icons.lines(width)}
-                </button>
-              );
-            } else {
-              return (
-                <button
-                  class={this.buttonClasses}
-                  ref={el => {
-                    this.lineButtons[width] = el;
-                  }}
-                  value="inactive"
-                >
-                  {icons.lines(width)}
-                </button>
-              );
-            }
+            return (
+              <button id={`line-${width}`} data-active={width === this.activeWidth}>
+                {icons.line(width)}
+              </button>
+            );
           })}
         </section>
+
+        {/* Clear */}
+        <section>
+          <button id="clear">{icons.trash}</button>
+          <button id="invert">{icons.swap}</button>
+        </section>
+
+        <button id="submit-button" onClick={this.submithandler} disabled={this.isSending}>
+          {!this.isSending ? <span>Submit</span> : <span>Sending...</span>}
+        </button>
       </section>
     );
   }

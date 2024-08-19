@@ -1,0 +1,6 @@
+@import '../../globals/css/modal.css';
+@import '../../globals/css/global-styles.css';
+
+strong {
+  font-weight: 600;
+}

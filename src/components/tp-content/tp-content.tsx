@@ -8,15 +8,18 @@ import { Component, h, Prop } from '@stencil/core';
 export class TpContent {
   @Prop() content: string;
   @Prop() type: string;
+  @Prop() sendingTo: string;
 
   render() {
     return (
-      <div
-        class="border border-slate-500 rounded-lg
-      text-black text-3xl text-center font-medium p-4 w-full bg-white aspect-[5/3]"
-      >
-        {this.type === 'image' ? <img class="w-full h-full" src={this.content}></img> : <p class="selectable">{this.content}</p>}
-      </div>
+      <article>
+        {this.type === 'image' ? <img src={this.content}></img> : <p>{this.content}</p>}
+        {this.sendingTo && this.type !== 'image' ? (
+          <p class="destination">
+            <strong>Sending to:</strong> {this.sendingTo}
+          </p>
+        ) : null}
+      </article>
     );
   }
 }
